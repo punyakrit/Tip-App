@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Tip App</string>
+    <string name="tip_amount">$tip</string>
 </resources>

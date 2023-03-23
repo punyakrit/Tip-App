@@ -12,11 +12,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.tipapp.ui.theme.TipAppTheme
+import java.text.NumberFormat
 import kotlin.random.Random
 
 class MainActivity : ComponentActivity() {
@@ -36,49 +39,50 @@ class MainActivity : ComponentActivity() {
 @Preview
 @Composable
 fun TipScreen(){
-    Box (
-        modifier = Modifier.background(Color.White)
-            ){
-        Column(
+    var amountInput by remember { mutableStateOf("") }
 
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally
+    val amount = amountInput.toDoubleOrNull() ?: 0.0
+    val tip = calculateTip(amount)
+
+    Column(
+        modifier = Modifier.padding(32.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            "Calculate Tip",
+            fontSize = 24.sp,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
         )
-        {
-            Spacer(modifier = Modifier.height(40.dp))
-            Text(
-                text = "Calculate Tip",
-                fontSize = 24.sp,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            EditNumber()
-
-            Spacer(modifier = Modifier.height(30.dp))
-
-            Text("amount ")
-        }
+        Spacer(Modifier.height(16.dp))
+        EditNumberField(
+            value = amountInput,
+            onValueChange = { amountInput = it }
+        )
+        Spacer(Modifier.height(24.dp))
+        Text(
+            text = "Your Tip is "+ tip,
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
-
 }
 
 @Composable
-fun EditNumber(){
-    var amountInput by remember { mutableStateOf("") }
-
+fun EditNumberField(
+    value: String,
+    onValueChange: (String) -> Unit
+) {
     TextField(
-        value = amountInput,
-        onValueChange ={amountInput = it},
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        singleLine = true,
-        label = {Text("Bill Amount")}
-        ,modifier = Modifier
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text("Bill Amount") },
+        modifier = Modifier
             .fillMaxWidth()
             .background(Color.Cyan)
-
+        ,
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
     )
 }
 
@@ -86,5 +90,8 @@ fun EditNumber(){
 private fun calculateTip(
     amount: Double,
     tipPercent: Double = 15.0
-) {
+) :String{
+val tip = tipPercent/100 * amount
+    return NumberFormat.getCurrencyInstance().format(tip)
+
 }
