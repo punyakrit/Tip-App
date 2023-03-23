@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -42,7 +43,18 @@ fun TipScreen(){
     var amountInput by remember { mutableStateOf("") }
 
     val amount = amountInput.toDoubleOrNull() ?: 0.0
-    val tip = calculateTip(amount)
+
+
+    var InputTip by remember {
+        mutableStateOf("")
+    }
+    var tipPer = InputTip.toDoubleOrNull() ?:0.0
+
+    var roundUp by remember {
+        mutableStateOf(false)
+    }
+
+    val tip = calculateTip(amount, tipPer, roundUp)
 
     Column(
         modifier = Modifier.padding(32.dp),
@@ -55,10 +67,23 @@ fun TipScreen(){
         )
         Spacer(Modifier.height(16.dp))
         EditNumberField(
+            "Bill Amount",
             value = amountInput,
             onValueChange = { amountInput = it }
         )
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(18.dp))
+
+        EditNumberField(
+            labelType = "Enter tip percent",
+            value = InputTip,
+            onValueChange = {InputTip = it})
+
+        Spacer(Modifier.height(12.dp))
+
+        RoundTheTipRow(roundUp = roundUp, onRoundUp ={roundUp = it} )
+
+        Spacer(Modifier.height(10.dp))
+
         Text(
             text = "Your Tip is "+ tip,
             modifier = Modifier.align(Alignment.CenterHorizontally),
@@ -69,29 +94,54 @@ fun TipScreen(){
 }
 
 @Composable
-fun EditNumberField(
+fun EditNumberField(labelType: String,
     value: String,
     onValueChange: (String) -> Unit
 ) {
     TextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text("Bill Amount") },
+        label = { Text(labelType) },
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.Cyan)
         ,
         singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType
+            .Number
+            , imeAction = ImeAction.Next
+        ),
     )
+}
+
+
+@Composable
+fun RoundTheTipRow(
+    roundUp :Boolean,
+    onRoundUp: (Boolean) ->Unit
+){
+    Row(modifier = Modifier
+        .fillMaxWidth()
+        .size(48.dp)
+    ) {
+        Text("Round Up Tip?")
+        Switch(checked = roundUp, onCheckedChange = onRoundUp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentWidth(Alignment.End))
+    }
 }
 
 
 private fun calculateTip(
     amount: Double,
-    tipPercent: Double = 15.0
+    tipPercent: Double,
+roundUp: Boolean
 ) :String{
-val tip = tipPercent/100 * amount
+var tip = tipPercent/100 * amount
+    if (roundUp)
+        tip = kotlin.math.ceil(tip)
+
     return NumberFormat.getCurrencyInstance().format(tip)
 
 }
